@@ -21,6 +21,15 @@
         </fileset>
         <pathelement path="${build.dir}"/>
     </path>
+	
+	<path id="test-classpath">
+	    <fileset dir="${web.dir}/WEB-INF/lib">
+	        <include name="*.jar"/>
+	    </fileset>
+	    <pathelement path="${build.dir}"/>
+	    <pathelement path="${test.dir}"/>
+	    <pathelement path="${web.dir}/WEB-INF/classes"/>
+    </path>
 
     <target name="usage">
         <echo message=""/>
@@ -248,12 +257,13 @@
             haltonfailure="false"
             failureproperty="tests.failed"
             showoutput="true">
-            <classpath refid="master-classpath"/>
+        	<classpath refid="test-classpath"/>
             <formatter type="brief" usefile="false"/>
             
             <batchtest>
                 <fileset dir="${build.dir}">
                     <include name="**/*Tests.*"/>
+                	<exclude name="**/Jdbc*Tests.*"/>
                 </fileset>
             </batchtest>
             
@@ -269,4 +279,33 @@
         </fail>
     </target>
 
+	 <target name="dbTests" depends="build, buildtests,dropTables,createTables,loadData" 
+	            description="Run db tests">
+        <junit printsummary="on"
+            fork="false"
+            haltonfailure="false"
+            failureproperty="tests.failed"
+            showoutput="true">
+            <classpath refid="test-classpath"/>
+            <formatter type="brief" usefile="false"/>
+            
+            <batchtest>
+                <fileset dir="${build.dir}">
+                    <include name="**/Jdbc*Tests.*"/>
+                </fileset>
+            </batchtest>
+            
+        </junit>
+        
+        <fail if="tests.failed">
+            tests.failed=${tests.failed}
+            ***********************************************************
+            ***********************************************************
+            ****  One or more tests failed!  Check the output ...  ****
+            ***********************************************************
+            ***********************************************************
+        </fail>
+    </target>
+
+	
 </project>
